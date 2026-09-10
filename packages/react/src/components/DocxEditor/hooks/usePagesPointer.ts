@@ -409,10 +409,13 @@ export function usePagesPointer(opts: UsePagesPointerOptions): UsePagesPointerRe
       } else {
         // Normal mode: single-click on H/F area is a no-op (matches Word —
         // don't yank the body caret to position 0). Double-click (`e.detail === 2`)
-        // falls through to the dblclick branch below where HF edit mode engages.
+        // engages HF edit mode via the click handler's dblclick branch — but
+        // the mousedown itself must ALSO no-op here. Falling through would run
+        // the "click outside content" fallback below, yanking the body caret
+        // to doc-end (and stealing focus) before HF mode opens.
         const isInHfArea =
           target.closest('.layout-page-header') || target.closest('.layout-page-footer');
-        if (isInHfArea && e.detail !== 2) {
+        if (isInHfArea) {
           e.preventDefault();
           return;
         }
@@ -634,6 +637,21 @@ export function usePagesPointer(opts: UsePagesPointerOptions): UsePagesPointerRe
   const handlePagesClick = useCallback(
     (e: React.MouseEvent) => {
       const surface = activeSurface();
+
+      // First click (detail === 1) on the painted header/footer area in
+      // normal mode is a no-op — the mousedown already returned early, and
+      // letting this fall through would run the "click outside content"
+      // fallback and yank the body caret to doc-end right before the second
+      // click (detail === 2) engages HF edit mode.
+      if (!hfEditMode) {
+        const target = e.target as HTMLElement;
+        const inHfArea =
+          target.closest('.layout-page-header') || target.closest('.layout-page-footer');
+        if (inHfArea && e.detail !== 2) {
+          e.preventDefault();
+          return;
+        }
+      }
 
       // Hyperlink: bookmark anchor (#name) or external href.
       const anchorEl = (e.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
