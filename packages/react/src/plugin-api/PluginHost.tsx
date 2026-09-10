@@ -22,7 +22,7 @@ import type { Plugin as ProseMirrorPlugin } from 'prosemirror-state';
 import {
   PluginLifecycleManager,
   injectStyles as coreInjectStyles,
-} from '@eigenpal/docx-editor-core';
+} from '@ucontract/docx-editor-core';
 import type {
   ReactEditorPlugin,
   ReactSidebarItem,

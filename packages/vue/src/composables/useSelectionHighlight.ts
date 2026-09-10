@@ -24,7 +24,7 @@ import {
   isSelectionWithin,
   injectSelectionStyles,
   areSelectionStylesInjected,
-} from '@eigenpal/docx-editor-core/utils';
+} from '@ucontract/docx-editor-core/utils';
 
 export interface UseSelectionHighlightOptions {
   containerRef: Ref<HTMLElement | null>;

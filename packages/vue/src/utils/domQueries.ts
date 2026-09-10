@@ -14,8 +14,8 @@ import {
   findBodyPmSpans,
   findBodyPmAnchor,
   clickToPositionDom,
-} from '@eigenpal/docx-editor-core/layout-bridge';
-import { findWordBoundaries } from '@eigenpal/docx-editor-core/utils';
+} from '@ucontract/docx-editor-core/layout-bridge';
+import { findWordBoundaries } from '@ucontract/docx-editor-core/utils';
 
 /**
  * Resolve the painted header/footer instance nearest the viewport center — the

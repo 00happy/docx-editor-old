@@ -1,11 +1,11 @@
 /**
- * @eigenpal/docx-editor-react/ui
+ * @ucontract/docx-editor-react/ui
  *
  * UI entry point — Toolbar, pickers, dialogs, and UI components.
  *
  * @example
  * ```tsx
- * import { Toolbar, FontPicker, ColorPicker } from '@eigenpal/docx-editor-react/ui';
+ * import { Toolbar, FontPicker, ColorPicker } from '@ucontract/docx-editor-react/ui';
  * ```
  *
  * @packageDocumentation

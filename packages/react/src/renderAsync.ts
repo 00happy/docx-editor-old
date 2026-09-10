@@ -1,12 +1,12 @@
 /**
  * Simple imperative API for rendering a DOCX editor into a DOM element.
  *
- * Returns an `EditorHandle` (from @eigenpal/docx-editor-core) that works with
+ * Returns an `EditorHandle` (from @ucontract/docx-editor-core) that works with
  * any framework implementation.
  *
  * Usage:
  * ```ts
- * import { renderAsync } from '@eigenpal/docx-editor-react';
+ * import { renderAsync } from '@ucontract/docx-editor-react';
  *
  * const editor = await renderAsync(docxBlob, document.getElementById('container'), {
  *   readOnly: false,
@@ -24,9 +24,9 @@
 import React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { DocxEditor, type DocxEditorProps, type DocxEditorRef } from './components/DocxEditor';
-import type { DocxInput, ScrollToParaIdOptions } from '@eigenpal/docx-editor-core/utils';
-import type { Document } from '@eigenpal/docx-editor-core/types/document';
-import type { EditorHandle } from '@eigenpal/docx-editor-core';
+import type { DocxInput, ScrollToParaIdOptions } from '@ucontract/docx-editor-core/utils';
+import type { Document } from '@ucontract/docx-editor-core/types/document';
+import type { EditorHandle } from '@ucontract/docx-editor-core';
 
 /**
  * Options for {@link renderAsync}. A subset of DocxEditorProps minus

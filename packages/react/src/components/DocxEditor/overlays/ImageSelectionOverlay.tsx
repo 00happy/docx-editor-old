@@ -14,7 +14,7 @@ import type { CSSProperties } from 'react';
 import {
   calculateResizedImageDimensions,
   type ImageResizeHandle,
-} from '@eigenpal/docx-editor-core/prosemirror/imageCommit';
+} from '@ucontract/docx-editor-core/prosemirror/imageCommit';
 
 // =============================================================================
 // TYPES

@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@eigenpal/docx-editor-react', '@eigenpal/docx-editor-core'],
+  transpilePackages: ['@ucontract/docx-editor-react', '@ucontract/docx-editor-core'],
 };
 
 export default nextConfig;

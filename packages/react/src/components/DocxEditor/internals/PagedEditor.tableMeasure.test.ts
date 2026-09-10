@@ -4,8 +4,8 @@ import type {
   Measure,
   ParagraphBlock,
   ParagraphMeasure,
-} from '@eigenpal/docx-editor-core/layout-engine';
-import { measureTableCellBlockVisualHeight } from '@eigenpal/docx-editor-core/layout-bridge';
+} from '@ucontract/docx-editor-core/layout-engine';
+import { measureTableCellBlockVisualHeight } from '@ucontract/docx-editor-core/layout-bridge';
 
 function paragraphBlock(
   runs: ParagraphBlock['runs'],

@@ -17,15 +17,15 @@ import {
   findBodyPmAnchor,
   findBodyPmSpans,
   getCaretPosition,
-} from '@eigenpal/docx-editor-core/layout-bridge';
-import { findPageIndexContainingPmPos } from '@eigenpal/docx-editor-core/layout-engine';
-import type { FlowBlock, Layout, Measure } from '@eigenpal/docx-editor-core/layout-engine';
-import { findStartPosForParaId } from '@eigenpal/docx-editor-core/prosemirror';
+} from '@ucontract/docx-editor-core/layout-bridge';
+import { findPageIndexContainingPmPos } from '@ucontract/docx-editor-core/layout-engine';
+import type { FlowBlock, Layout, Measure } from '@ucontract/docx-editor-core/layout-engine';
+import { findStartPosForParaId } from '@ucontract/docx-editor-core/prosemirror';
 import {
   flashParagraphFragmentsByParaId,
   type ScrollToParaIdOptions,
-} from '@eigenpal/docx-editor-core/utils';
-import { findVerticalScrollParentOrRoot } from '@eigenpal/docx-editor-core/utils/findVerticalScrollParent';
+} from '@ucontract/docx-editor-core/utils';
+import { findVerticalScrollParentOrRoot } from '@ucontract/docx-editor-core/utils/findVerticalScrollParent';
 
 import type { HiddenProseMirrorRef } from '../HiddenProseMirror';
 import { runAfterPaint, scrollElementCenterIntoContainer } from '../internals/scrollUtils';

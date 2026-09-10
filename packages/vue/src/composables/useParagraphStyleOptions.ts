@@ -11,9 +11,9 @@ import {
   getStylePreviewProps,
   resolveParagraphStyleOptions,
   type StylePreviewProps,
-} from '@eigenpal/docx-editor-core/utils/stylePreview';
-import type { Style } from '@eigenpal/docx-editor-core/types/document';
-import type { TranslationKey } from '@eigenpal/docx-editor-i18n';
+} from '@ucontract/docx-editor-core/utils/stylePreview';
+import type { Style } from '@ucontract/docx-editor-core/types/document';
+import type { TranslationKey } from '@ucontract/docx-editor-i18n';
 import { paragraphStyles } from '../components/Toolbar/presets';
 
 export interface ResolvedStyle {

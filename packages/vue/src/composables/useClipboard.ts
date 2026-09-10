@@ -9,13 +9,13 @@ import {
   parseClipboardHtml,
   runsToClipboardContent,
   type ParsedClipboardContent,
-} from '@eigenpal/docx-editor-core/utils';
+} from '@ucontract/docx-editor-core/utils';
 import {
   getSelectionRuns,
   createSelectionFromDOM,
   type ClipboardSelection,
   type Theme,
-} from '@eigenpal/docx-editor-core';
+} from '@ucontract/docx-editor-core';
 
 export { getSelectionRuns, createSelectionFromDOM, runsToClipboardContent };
 export type { ClipboardSelection };
