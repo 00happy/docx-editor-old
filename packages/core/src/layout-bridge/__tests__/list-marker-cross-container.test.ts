@@ -88,7 +88,10 @@ describe('toFlowBlocks — list markers across containers', () => {
     expect(markersOf(blocks)).toEqual(['1.', '2.', '3.']);
   });
 
-  test('different numIds keep independent counters', () => {
+  // Divergence from upstream 1.9.0: a numId first seen after another list
+  // continues the running counter (Word's shared-abstractNum behavior)
+  // instead of restarting from 1. numId 1's own counter is unaffected.
+  test('a later numId inherits the running counter; the first keeps its own', () => {
     const d = doc([
       listPara(1, 0, 'a'),
       listPara(2, 0, 'x'),
@@ -97,7 +100,7 @@ describe('toFlowBlocks — list markers across containers', () => {
     ]);
     const pm = toProseDoc(d);
     const blocks = toFlowBlocks(pm, {});
-    expect(markersOf(blocks)).toEqual(['1.', '1.', '2.', '2.']);
+    expect(markersOf(blocks)).toEqual(['1.', '2.', '2.', '3.']);
   });
 
   test('numId === 0 is treated as "no numbering" — no marker emitted', () => {

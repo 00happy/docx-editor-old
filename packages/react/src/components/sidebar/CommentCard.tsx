@@ -152,7 +152,9 @@ export function CommentCard({
       </div>
 
       <div style={{ fontSize: 13, color: 'var(--doc-text)', lineHeight: '20px', marginTop: 6 }}>
-        {getCommentText(comment.content)}
+        {/* Label the card body as a comment so screen readers and skimmers
+            can tell it apart from the author/date header above. */}
+        {t('common.comment')}: {getCommentText(comment.content)}
       </div>
 
       <ReplyThread replies={replies} isExpanded={isExpanded} />

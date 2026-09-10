@@ -91,9 +91,11 @@ describe('toFlowBlocks — counter shared by abstractNumId', () => {
     expect(markersOf(toFlowBlocks(toProseDoc(d), {}))).toEqual(['(5)', '7.']);
   });
 
-  test('numIds without an abstractNumId stay independent (legacy fallback)', () => {
+  // Divergence from upstream 1.9.0: without an abstractNumId, the second
+  // numId inherits the running counter instead of starting fresh — matches
+  // the patched behavior in production.
+  test('numIds without an abstractNumId chain the running counter (legacy fallback)', () => {
     const d = doc([listPara({ numId: 1, text: 'a' }), listPara({ numId: 2, text: 'b' })]);
-    // Without a shared abstractNumId we key by numId — each starts fresh.
-    expect(markersOf(toFlowBlocks(toProseDoc(d), {}))).toEqual(['(1)', '(1)']);
+    expect(markersOf(toFlowBlocks(toProseDoc(d), {}))).toEqual(['(1)', '(2)']);
   });
 });

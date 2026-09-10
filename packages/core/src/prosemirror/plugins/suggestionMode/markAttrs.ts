@@ -8,13 +8,14 @@
  */
 
 import { mintRevisionId } from '../revisionIds';
+import { nowWordDate } from '../../../utils/wordDate';
 import type { MarkAttrs, SuggestionModeState } from './state';
 
 export function makeMarkAttrs(pluginState: SuggestionModeState, date?: string): MarkAttrs {
   return {
     revisionId: mintRevisionId(),
     author: pluginState.author,
-    date: date ?? new Date().toISOString(),
+    date: date ?? nowWordDate(),
   };
 }
 

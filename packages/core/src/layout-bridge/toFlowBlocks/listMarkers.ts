@@ -113,7 +113,9 @@ export function resolveListTemplate(
     if (idx < 0) return '';
     const value = counters[idx] ?? 0;
     const fmt = levelNumFmts?.[idx] ?? 'decimal';
-    const formatted = formatCounter(value, fmt);
+    // Clamp to 1 so a referenced-but-not-yet-counted level still renders a
+    // digit instead of an empty placeholder.
+    const formatted = formatCounter(value < 1 ? 1 : value, fmt);
     return formatted ? formatted + punct : '';
   });
 }
@@ -123,15 +125,31 @@ export function resolveListTemplate(
  * marker. Mutates `counters` in place. Returns null when no marker should
  * be drawn (numId is missing or 0 — "no numbering" per ECMA-376).
  */
+/**
+ * The counter map carries the previous list's counter state so a numbering
+ * switch that lands on an unseen counter key can continue counting instead
+ * of restarting from zero.
+ */
+type ListCounterMap = Map<number, number[]> & {
+  prevNum?: { k: number; c: number[] } | null;
+};
+
 export function computeListMarker(
   pmAttrs: PMParagraphAttrs,
   listCounters: Map<number, number[]>,
   seenNumIds: Set<string>
 ): string | null {
+  const countersMap = listCounters as ListCounterMap;
   const numPr = pmAttrs.numPr;
-  if (!numPr) return null;
+  if (!numPr) {
+    countersMap.prevNum = null;
+    return null;
+  }
   const numId = numPr.numId;
-  if (numId == null || numId === 0) return null;
+  if (numId == null || numId === 0) {
+    countersMap.prevNum = null;
+    return null;
+  }
 
   // Bullets don't consume a numbering slot — they share a numId with numbered
   // levels in some templates, and incrementing here would skip numbers.
@@ -154,7 +172,17 @@ export function computeListMarker(
   }
 
   const counterKey = pmAttrs.listAbstractNumId ?? numId;
-  const counters = listCounters.get(counterKey) ?? new Array(9).fill(0);
+  let counters = listCounters.get(counterKey);
+  if (
+    counters === undefined &&
+    countersMap.prevNum != null &&
+    countersMap.prevNum.k !== counterKey
+  ) {
+    counters = countersMap.prevNum.c.slice();
+  }
+  if (counters === undefined) {
+    counters = new Array(9).fill(0);
+  }
 
   const seenKey = `${numId}:${level}`;
   if (!seenNumIds.has(seenKey)) {
@@ -170,6 +198,7 @@ export function computeListMarker(
     counters[i] = 0;
   }
   listCounters.set(counterKey, counters);
+  countersMap.prevNum = { k: counterKey, c: counters };
 
   // Parsed lvlText template (e.g. "%1." or "%1.%2.") resolves against the
   // counter stack. Editor-created lists with no template fall back to the

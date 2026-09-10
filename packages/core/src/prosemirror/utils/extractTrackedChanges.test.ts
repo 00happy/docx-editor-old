@@ -58,7 +58,10 @@ function makeState(doc: ReturnType<typeof schema.node>): EditorState {
 }
 
 describe('extractTrackedChanges: foreign-doc coalescing by (author, date)', () => {
-  test('5 insertions with distinct w:ids but same (author, date) collapse to ONE card', () => {
+  // Divergence from upstream 1.9.0: only literally adjacent runs coalesce.
+  // Same-(author, date) bursts in separate paragraphs stay separate cards —
+  // merging them fabricated a space between unrelated sentences.
+  test('5 insertions with distinct w:ids but same (author, date) stay 5 cards (adjacency required)', () => {
     const ins = (id: number, text: string) =>
       schema.text(text, [
         schema.marks.insertion.create({ revisionId: id, author: AUTHOR, date: DATE }),
@@ -71,18 +74,21 @@ describe('extractTrackedChanges: foreign-doc coalescing by (author, date)', () =
       schema.nodes.paragraph.create({}, [ins(186027604, 'fsd')]),
     ]);
     const { entries } = extractTrackedChanges(makeState(doc));
-    expect(entries).toHaveLength(1);
-    const e = entries[0]!;
-    expect(e.type).toBe('insertion');
-    expect(e.author).toBe(AUTHOR);
-    expect(e.date).toBe(DATE);
-    // Coalesced ids cover the 4 absorbed entries (the primary lives on `revisionId`).
-    expect(new Set([e.revisionId, ...(e.coalescedRevisionIds ?? [])])).toEqual(
-      new Set([1388975360, 47262383, 1323221525, 737865714, 186027604])
+    expect(entries).toHaveLength(5);
+    for (const e of entries) {
+      expect(e.type).toBe('insertion');
+      expect(e.author).toBe(AUTHOR);
+      expect(e.date).toBe(DATE);
+    }
+    // Each card carries its own id; nothing is coalesced.
+    expect(entries.map((e) => e.revisionId).sort()).toEqual(
+      [1388975360, 47262383, 1323221525, 737865714, 186027604].sort()
     );
   });
 
-  test('paragraph-mark insertions with distinct ids but same (author, date) hide behind one inline card', () => {
+  // Divergence from upstream 1.9.0: non-adjacent inline insertions no longer
+  // collapse behind a single card.
+  test('paragraph-mark insertions with distinct ids but same (author, date) surface 2 cards', () => {
     const ins = (id: number, text: string) =>
       schema.text(text, [
         schema.marks.insertion.create({ revisionId: id, author: AUTHOR, date: DATE }),
@@ -93,7 +99,7 @@ describe('extractTrackedChanges: foreign-doc coalescing by (author, date)', () =
       schema.nodes.paragraph.create({ pPrIns: pPrIns(1254058768) }, [ins(47262383, 'fdsfsdf')]),
     ]);
     const { entries } = extractTrackedChanges(makeState(doc));
-    expect(entries).toHaveLength(1);
+    expect(entries).toHaveLength(2);
     expect(entries[0]!.type).toBe('insertion');
   });
 

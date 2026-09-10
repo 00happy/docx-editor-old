@@ -15,6 +15,9 @@ import type {
 import type { Run } from './run';
 import type { Hyperlink } from './link';
 
+/** Content items allowed inside a tracked-change wrapper (w:ins/w:del/w:moveFrom/w:moveTo). */
+export type TrackedChangeContent = Run | Hyperlink | Insertion | Deletion | MoveFrom | MoveTo;
+
 /**
  * Tracked change metadata (w:ins, w:del attributes)
  */
@@ -69,8 +72,8 @@ export interface Insertion {
   type: 'insertion';
   /** Tracked change metadata */
   info: TrackedChangeInfo;
-  /** Inserted content */
-  content: (Run | Hyperlink)[];
+  /** Inserted content — may nest another tracked-change wrapper */
+  content: TrackedChangeContent[];
 }
 
 /**
@@ -80,8 +83,8 @@ export interface Deletion {
   type: 'deletion';
   /** Tracked change metadata */
   info: TrackedChangeInfo;
-  /** Deleted content */
-  content: (Run | Hyperlink)[];
+  /** Deleted content — may nest another tracked-change wrapper */
+  content: TrackedChangeContent[];
 }
 
 /**
@@ -91,8 +94,8 @@ export interface MoveFrom {
   type: 'moveFrom';
   /** Tracked change metadata */
   info: TrackedChangeInfo;
-  /** Moved content */
-  content: (Run | Hyperlink)[];
+  /** Moved content — may nest another tracked-change wrapper */
+  content: TrackedChangeContent[];
 }
 
 /**
@@ -102,8 +105,8 @@ export interface MoveTo {
   type: 'moveTo';
   /** Tracked change metadata */
   info: TrackedChangeInfo;
-  /** Moved content */
-  content: (Run | Hyperlink)[];
+  /** Moved content — may nest another tracked-change wrapper */
+  content: TrackedChangeContent[];
 }
 
 /**

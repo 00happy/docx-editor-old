@@ -32,6 +32,7 @@ import type { RevisionInfo } from '../../types/content/trackedChange';
 // (the barrel) would create a load-order cycle since the barrel pulls in
 // `markAttrs`, which pulls `mintRevisionId` from this file.
 import { suggestionModeKey } from './suggestionMode/state';
+import { nowWordDate } from '../../utils/wordDate';
 
 let counter = Date.now();
 
@@ -55,6 +56,6 @@ export function makeRevisionInfo(state: EditorState): RevisionInfo | null {
   return {
     revisionId: mintRevisionId(),
     author: pluginState.author,
-    date: new Date().toISOString(),
+    date: nowWordDate(),
   };
 }

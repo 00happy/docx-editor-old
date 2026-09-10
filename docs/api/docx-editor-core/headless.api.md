@@ -331,7 +331,7 @@ export interface DeleteTextCommand extends BaseCommand {
 
 // @public
 export interface Deletion {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'deletion';
@@ -704,7 +704,7 @@ export interface InsertImageOptions {
 
 // @public
 export interface Insertion {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'insertion';
@@ -906,7 +906,7 @@ export { McpToolResult as ToolResult }
 
 // @public
 export interface MoveFrom {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'moveFrom';
@@ -914,7 +914,7 @@ export interface MoveFrom {
 
 // @public
 export interface MoveTo {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'moveTo';

@@ -57,6 +57,9 @@ export function markRangeAsDeleted(
     if (range.isOwnInsert) {
       tr.delete(range.from, range.to);
     } else {
+      // Drop any insertion mark on the range before striking it through, so
+      // the text does not carry ins + del at the same time.
+      if (insertionType) tr.removeMark(range.from, range.to, insertionType);
       tr.addMark(range.from, range.to, deletionType.create(delAttrs));
     }
   }
@@ -135,6 +138,9 @@ export function handleSuggestionDelete(
         'deletion',
         pluginState.author
       ) || makeMarkAttrs(pluginState);
+    // Drop any insertion mark on the range before striking it through, so
+    // the text does not carry ins + del at the same time.
+    if (insertionType) tr.removeMark(deletePos, deleteEnd, insertionType);
     tr.addMark(deletePos, deleteEnd, deletionType.create(delAttrs));
     // Move cursor past the deletion mark
     const newPos = isBackward ? deletePos : deleteEnd;

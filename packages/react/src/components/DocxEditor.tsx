@@ -17,6 +17,7 @@ import { cn } from '../lib/utils';
 import { type SelectionFormatting } from './Toolbar';
 import type { AgentPanelOptions } from './DocxEditor/types';
 import { useOutlineSidebar } from './DocxEditor/hooks/useOutlineSidebar';
+import { useSidebarItemLocation } from './DocxEditor/hooks/useSidebarItemLocation';
 import { useKeyboardShortcuts } from './DocxEditor/hooks/useKeyboardShortcuts';
 import { useFileIO } from './DocxEditor/hooks/useFileIO';
 import { usePageSetupControls } from './DocxEditor/hooks/usePageSetupControls';
@@ -722,11 +723,10 @@ export const DocxEditor = forwardRef<DocxEditorRef, DocxEditorProps>(function Do
     onCommentsChange,
     pagedEditorRef,
   });
+  useSidebarItemLocation(expandedSidebarItem, pagedEditorRef);
 
-  // Latest PM state — mirrored from the view on every doc-changing transaction.
-  // Drives the tracked changes derivation so the sidebar derives its list directly
-  // from PM (the source of truth, including remote ySync updates) rather than a debounced
-  // copy in React state.
+  // Latest PM state — mirrored from the view on every doc-changing transaction;
+  // drives the tracked-changes derivation (source of truth, ySync included).
   const [pmState, setPmState] = useState<PMEditorState | null>(null);
   const [hfVersion, setHfVersion] = useState(0);
 

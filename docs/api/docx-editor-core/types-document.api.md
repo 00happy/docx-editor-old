@@ -150,7 +150,7 @@ export const DEFAULT_WATERMARK_PRESETS: readonly string[];
 
 // @public
 export interface Deletion {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'deletion';
@@ -496,7 +496,7 @@ export interface InlineSdt {
 
 // @public
 export interface Insertion {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'insertion';
@@ -574,7 +574,7 @@ export interface MediaFile {
 
 // @public
 export interface MoveFrom {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'moveFrom';
@@ -600,7 +600,7 @@ export interface MoveFromRangeStart {
 
 // @public
 export interface MoveTo {
-    content: (Run | Hyperlink)[];
+    content: TrackedChangeContent[];
     info: TrackedChangeInfo;
     // (undocumented)
     type: 'moveTo';

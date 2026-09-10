@@ -19,6 +19,7 @@ import type { Comment, Paragraph, Theme, RelationshipMap, MediaFile } from '../t
 import type { StyleMap } from './styleParser';
 import { parseXml, findChild, getChildElements, getAttribute } from './xmlParser';
 import { parseParagraph } from './paragraphParser';
+import { utcToWordDate } from '../utils/wordDate';
 
 /**
  * Build a lookup from paraId → dateUtc from commentsExtensible.xml
@@ -154,8 +155,10 @@ export function parseComments(
       getAttribute(child, 'w', 'paraId');
     const dateUtc = paraId ? dateUtcByParaId.get(String(paraId).toUpperCase()) : undefined;
 
-    // Prefer UTC date over ambiguous local date
-    const date = dateUtc ?? localDate;
+    // Prefer the true UTC date from commentsExtensible.xml, converted to the
+    // wall-clock convention every other date follows. The plain w:date is
+    // already wall clock (with Word's bogus Z) — formatDate strips the Z.
+    const date = dateUtc != null ? utcToWordDate(String(dateUtc)) : localDate;
 
     // Parse w:done attribute (resolved/done state)
     const rawDone = getAttribute(child, 'w', 'done') ?? child.attributes?.['w:done'];

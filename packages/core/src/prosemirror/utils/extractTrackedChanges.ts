@@ -470,11 +470,10 @@ export function extractTrackedChanges(state: EditorState | null): TrackedChanges
     }
     const key = `${entry.type}|${entry.author}|${entry.date ?? ''}`;
     const group = inlineGroups.get(key);
-    if (group) {
-      // Cross-paragraph runs get a space separator; literally adjacent runs
-      // concatenate directly.
-      const sep = group.to === entry.from ? '' : ' ';
-      group.text += sep + entry.text;
+    if (group && group.to === entry.from) {
+      // Literally adjacent runs concatenate directly; non-adjacent runs stay
+      // separate cards instead of being joined with a fabricated space.
+      group.text += entry.text;
       group.to = entry.to;
       if (entry.revisionId !== group.revisionId) {
         const ids = new Set<number>(group.coalescedRevisionIds ?? []);

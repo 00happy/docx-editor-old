@@ -368,6 +368,12 @@ function serializeTrackedChange(
         return xml;
       }
       if (item.type === 'hyperlink') return serializeHyperlink(item);
+      // Nested tracked-change wrappers (a move/replace carrying another
+      // revision) serialize recursively instead of being dropped.
+      if (item.type === 'insertion') return serializeTrackedChange('ins', item);
+      if (item.type === 'deletion') return serializeTrackedChange('del', item);
+      if (item.type === 'moveTo') return serializeTrackedChange('moveTo', item);
+      if (item.type === 'moveFrom') return serializeTrackedChange('moveFrom', item);
       return '';
     })
     .join('');

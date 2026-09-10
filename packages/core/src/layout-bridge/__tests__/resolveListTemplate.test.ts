@@ -77,17 +77,21 @@ describe('resolveListTemplate', () => {
   });
 
   describe('edge cases', () => {
-    test('counter of 0 drops both placeholder and trailing punct', () => {
-      expect(resolveListTemplate('%1.', [0], ['decimal'])).toBe('');
+    // Divergence from upstream 1.9.0: a referenced counter is clamped to 1
+    // so an uncounted level renders a digit instead of vanishing.
+    test('counter of 0 renders 1 (clamped) instead of dropping the placeholder', () => {
+      expect(resolveListTemplate('%1.', [0], ['decimal'])).toBe('1.');
     });
 
-    test('"%1.%2." at level 0 renders "1." not "1.."', () => {
-      expect(resolveListTemplate('%1.%2.', [1, 0], ['decimal', 'decimal'])).toBe('1.');
+    // Divergence from upstream 1.9.0: the uncounted %2 clamps to 1 too.
+    test('"%1.%2." at level 0 renders "1.1." (both clamp)', () => {
+      expect(resolveListTemplate('%1.%2.', [1, 0], ['decimal', 'decimal'])).toBe('1.1.');
     });
 
-    test('"%1.%2.%3." at level 1 renders "1.2."', () => {
+    // Divergence from upstream 1.9.0: the uncounted %3 clamps to 1 too.
+    test('"%1.%2.%3." at level 1 renders "1.2.1." (unseen level clamps)', () => {
       expect(resolveListTemplate('%1.%2.%3.', [1, 2, 0], ['decimal', 'decimal', 'decimal'])).toBe(
-        '1.2.'
+        '1.2.1.'
       );
     });
 

@@ -522,7 +522,14 @@ function collectParagraphContentTokens(
       case 'deletion':
       case 'moveFrom':
       case 'moveTo':
-        collectRunOrHyperlinkTokens(item.content, tokens);
+        // Nested wrappers carry no direct run tokens — flatten one level and
+        // keep only the run/hyperlink items.
+        collectRunOrHyperlinkTokens(
+          item.content.filter(
+            (child): child is Run | Hyperlink => child.type === 'run' || child.type === 'hyperlink'
+          ),
+          tokens
+        );
         break;
       case 'mathEquation':
         tokens.push('visible');

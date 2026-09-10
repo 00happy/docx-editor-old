@@ -26,7 +26,10 @@ export function getCommentText(paragraphs?: Paragraph[]): string {
 
 export function formatDate(dateStr?: string): string {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
+  // Word's `w:date` is local wall clock with a bogus `Z` suffix — strip it so
+  // the value parses as wall time and displays exactly as Word shows it.
+  const d = new Date(dateStr.replace(/(\.\d+)?Z$/i, ''));
+  if (isNaN(d.getTime())) return '';
   return d.toLocaleString(undefined, {
     hour: 'numeric',
     minute: '2-digit',

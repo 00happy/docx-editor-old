@@ -653,7 +653,21 @@ function extractParagraphContent(paragraph: PMNode): ParagraphContent[] {
       const isMovePair = changeMark.attrs.isMovePair === true;
 
       if (insertionMark) {
-        if (isMovePair) {
+        if (deletionMark) {
+          // Both marks on one node: the deletion side wins. Serialize from
+          // the deletion mark's own revision info so a replace that was
+          // struck through round-trips as del/moveFrom, not as a stray
+          // insertion next to the deletion.
+          content.push({
+            type: deletionMark.attrs.isMovePair === true ? 'moveFrom' : 'deletion',
+            info: {
+              id: deletionMark.attrs.revisionId as number,
+              author: (deletionMark.attrs.author as string) || 'Unknown',
+              date: (deletionMark.attrs.date as string) || undefined,
+            },
+            content: [run],
+          });
+        } else if (isMovePair) {
           content.push({ type: 'moveTo', info, content: [run] });
         } else {
           content.push({ type: 'insertion', info, content: [run] });

@@ -240,8 +240,9 @@ export function serializeCommentsExtensible(
 
     const durableId = info.durableId;
 
-    // Ensure UTC format
-    // Strip milliseconds and ensure Z suffix
+    // Follow the wall-clock convention used everywhere (see utils/wordDate):
+    // the editor writes w:date and dateUtc as the local wall clock with a Z
+    // suffix, matching how Word itself fills w:date. Strip milliseconds.
     const dateUtc = (comment.date.endsWith('Z') ? comment.date : comment.date + 'Z').replace(
       /\.\d{3}Z$/,
       'Z'

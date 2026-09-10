@@ -10,6 +10,7 @@ import type { EditorView } from 'prosemirror-view';
 import type { Comment } from '../types/content';
 import type { CommentIdAllocator } from './commentIdAllocator';
 import { findParaIdRange, findTextInPmParagraph } from './paraText';
+import { nowWordDate } from '../utils/wordDate';
 
 /** Build a Comment object with a freshly-allocated ID. */
 export function createComment(
@@ -21,7 +22,7 @@ export function createComment(
   return {
     id: allocator.next(),
     author: authorName,
-    date: new Date().toISOString(),
+    date: nowWordDate(),
     content: [
       {
         type: 'paragraph',
@@ -134,7 +135,7 @@ export function applyProposedChange(
   }
 
   const revisionId = allocator.next();
-  const date = new Date().toISOString();
+  const date = nowWordDate();
   const deletionMark = schema.marks.deletion.create({ revisionId, author: options.author, date });
   const insertionMark = schema.marks.insertion.create({ revisionId, author: options.author, date });
 
