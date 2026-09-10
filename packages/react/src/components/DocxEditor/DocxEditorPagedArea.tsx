@@ -1,6 +1,6 @@
 import { TextSelection } from 'prosemirror-state';
 import type { EditorView } from 'prosemirror-view';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import type {
@@ -254,7 +254,7 @@ export function DocxEditorPagedArea({
   // once here so they survive scroll (see `toHfHostLocal`).
   const applyHfOverlay = useCallback(
     (view: EditorView) => {
-      if (!hfEditPosition) {
+      if (!hfEditPosition || hfPmAdoptedRef.current) {
         setHfCaretRect(null);
         setHfSelectionRects([]);
         return;
@@ -335,8 +335,16 @@ export function DocxEditorPagedArea({
   // The painted band keeps rendering underneath as the saved snapshot until
   // the next relayout replaces it; to avoid double ink the band's painted
   // content is hidden while the PM is adopted.
+  // Adoption state lives in a ref only: the rAF-driven measurement callbacks
+  // are closures that must see it synchronously, before the next render's
+  // callback rebuild. React state is unnecessary — the caret/selection rects
+  // are already state, and clearing them is what unhooks the overlay.
+  const hfPmAdoptedRef = useRef(false);
   useEffect(() => {
-    if (!hfEditPosition || !activeHf) return;
+    if (!hfEditPosition || !activeHf) {
+      hfPmAdoptedRef.current = false;
+      return;
+    }
     const scope = editorContentRef.current;
     if (!scope) return;
     const bandSelector =
@@ -345,8 +353,14 @@ export function DocxEditorPagedArea({
     if (!band) return;
     const ok = pagedEditorRef.current?.adoptHfPmView(activeHf, band) ?? false;
     if (!ok) return;
+    hfPmAdoptedRef.current = true;
+    // The adopted PM draws its own native caret — the measurement-based
+    // overlay would paint a SECOND caret on top. Stand it down.
+    setHfCaretRect(null);
+    setHfSelectionRects([]);
     band.classList.add('hf-band--live-pm');
     return () => {
+      hfPmAdoptedRef.current = false;
       band.classList.remove('hf-band--live-pm');
       pagedEditorRef.current?.restoreHfPmView(activeHf);
     };
