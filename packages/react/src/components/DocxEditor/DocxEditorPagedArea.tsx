@@ -231,17 +231,23 @@ export function DocxEditorPagedArea({
   // scroll delta and the caret would drift away from the footer (#671
   // follow-up). Converting ONCE here yields a scroll-invariant value that the
   // absolutely-positioned div tracks natively with zero per-frame JS.
-  const toHfHostLocal = useCallback(<T extends { top: number; left: number }>(rect: T): T => {
-    const pagesEl = window.document.querySelector('.paged-editor__pages') as HTMLElement | null;
-    const host = pagesEl?.parentElement as HTMLElement | null;
-    if (!host) return rect;
-    const c = host.getBoundingClientRect();
-    return {
-      ...rect,
-      top: rect.top - c.top + host.scrollTop,
-      left: rect.left - c.left + host.scrollLeft,
-    };
-  }, []);
+  const toHfHostLocal = useCallback(
+    <T extends { top: number; left: number }>(rect: T): T => {
+      const pagesEl = editorContentRef.current?.querySelector(
+        '.paged-editor__pages'
+      ) as HTMLElement | null;
+      const host = pagesEl?.parentElement as HTMLElement | null;
+      if (!host) return rect;
+      const c = host.getBoundingClientRect();
+      return {
+        ...rect,
+        top: rect.top - c.top + host.scrollTop,
+        left: rect.left - c.left + host.scrollLeft,
+      };
+       
+    },
+    [editorContentRef]
+  );
 
   // Recompute the painted HF overlay (caret + drag-selection rects + multi-cell
   // highlight) for the active section from the live HF view. Called on engage,
@@ -254,10 +260,14 @@ export function DocxEditorPagedArea({
         setHfSelectionRects([]);
         return;
       }
-      const caret = computeHfCaretRectFromView(view, hfEditPosition);
+      const scope = editorContentRef.current;
+      if (!scope) return;
+      const caret = computeHfCaretRectFromView(view, hfEditPosition, scope);
       setHfCaretRect(caret ? toHfHostLocal(caret) : null);
-      setHfSelectionRects(computeHfSelectionRectsFromView(view, hfEditPosition).map(toHfHostLocal));
-      const pagesEl = window.document.querySelector('.paged-editor__pages') as HTMLElement | null;
+      setHfSelectionRects(
+        computeHfSelectionRectsFromView(view, hfEditPosition, scope).map(toHfHostLocal)
+      );
+      const pagesEl = scope.querySelector('.paged-editor__pages') as HTMLElement | null;
       // Multi-cell selection renders via `.layout-table-cell-selected`, scoped
       // to the active section so footer selections don't light up header cells.
       if (pagesEl) applyCellSelectionHighlight(pagesEl, view.state, { scope: hfEditPosition });
@@ -288,7 +298,9 @@ export function DocxEditorPagedArea({
     // it instead of the rAF chain so the measurement always sees the fresh
     // `data-pm-start` spans. Also invalidate the cached HF DOM snapshot so
     // the next caret compute re-walks the host.
-    const pagesEl = window.document.querySelector('.paged-editor__pages') as HTMLElement | null;
+    const pagesEl = editorContentRef.current?.querySelector(
+      '.paged-editor__pages'
+    ) as HTMLElement | null;
     const onPainted = () => {
       invalidateHfDomCache();
       measure();
@@ -346,7 +358,7 @@ export function DocxEditorPagedArea({
           // Wait for it so the cache invalidation + caret measurement sees
           // the fresh span layout. Selection-only transactions skip the
           // painter, so use a one-shot rAF as a fallback.
-          const pagesEl = window.document.querySelector(
+          const pagesEl = editorContentRef.current?.querySelector(
             '.paged-editor__pages'
           ) as HTMLElement | null;
           let painted = false;
@@ -496,7 +508,7 @@ export function DocxEditorPagedArea({
       {hfEditPosition &&
         (hfCaretRect || hfSelectionRects.length > 0) &&
         (() => {
-          const pagesEl = window.document.querySelector(
+          const pagesEl = editorContentRef.current?.querySelector(
             '.paged-editor__pages'
           ) as HTMLElement | null;
           const host = pagesEl?.parentElement as HTMLElement | null;

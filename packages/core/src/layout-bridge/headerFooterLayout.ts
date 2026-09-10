@@ -429,20 +429,25 @@ type HfDomSnapshot = {
   ranged: HTMLElement[];
 };
 
-// Resolved HF DOM snapshot cached between calls, keyed by section. Invalidated
-// by the painter's `painter:painted` event (`invalidateHfDomCache()` below) so
-// the snapshot is always at most one paint stale. Without this, every
-// HF caret + selection-rect computation re-walked every span on every
-// page, which on multi-page docs is O(pages × spans) per scroll-rAF.
+// Resolved HF DOM snapshot cached between calls, keyed by scope+section.
+// Invalidated by the painter's `painter:painted` event
+// (`invalidateHfDomCache()` below) so the snapshot is always at most one
+// paint stale. Without this, every HF caret + selection-rect computation
+// re-walked every span on every page, which on multi-page docs is
+// O(pages × spans) per scroll-rAF.
 //
-// Keyed by section because the header and footer are distinct PM docs painted
-// in distinct hosts. A single shared slot let the first match in DOM order
-// (always the header) shadow the footer, so an active footer's caret/selection
-// resolved against the header's spans (#671).
-const hfDomCache: { header: HfDomSnapshot | null; footer: HfDomSnapshot | null } = {
-  header: null,
-  footer: null,
-};
+// Keyed by scope (the queried root's identity) AND section: with multiple
+// editor instances mounted (e.g. a side-by-side review layout), the global
+// document holds several `.layout-page-header` hosts and the cache MUST NOT
+// hand one editor the snapshot measured inside another editor's DOM. A
+// section-only key let the first editor's host shadow the second editor's.
+// Within one editor, header and footer are still distinct keys because
+// they're distinct PM docs in distinct hosts — a single shared slot let the
+// first match in DOM order (always the header) shadow the footer (#671).
+const hfDomCache = new Map<
+  ParentNode,
+  { header: HfDomSnapshot | null; footer: HfDomSnapshot | null }
+>();
 
 /**
  * Drop the cached HF host + span lists. Hosts/painters call this after
@@ -453,14 +458,10 @@ const hfDomCache: { header: HfDomSnapshot | null; footer: HfDomSnapshot | null }
  * @public
  */
 export function invalidateHfDomCache(): void {
-  hfDomCache.header = null;
-  hfDomCache.footer = null;
+  hfDomCache.clear();
 }
 
-function getHfDomSnapshot(
-  section: 'header' | 'footer',
-  doc: globalThis.Document
-): HfDomSnapshot | null {
+function getHfDomSnapshot(section: 'header' | 'footer', root: ParentNode): HfDomSnapshot | null {
   // The same HF doc is painted on every page (shared by `r:id`), so any painted
   // instance carries the right PM coords. But the caret/selection overlay must
   // render on the instance the user is actually editing — pick the host nearest
@@ -469,9 +470,9 @@ function getHfDomSnapshot(
   // saw no caret or highlight where they were typing (#691 footer).
   // Scoping to `.layout-page-${section}` keeps the header and footer from
   // shadowing each other (#671).
-  const hosts = doc.querySelectorAll<HTMLElement>(`.layout-page-${section}`);
+  const hosts = root.querySelectorAll<HTMLElement>(`.layout-page-${section}`);
   if (hosts.length === 0) return null;
-  const win = doc.defaultView;
+  const win = root instanceof Document ? root.defaultView : root.ownerDocument?.defaultView;
   const vpCenter = win ? win.innerHeight / 2 : 0;
   let host = hosts[0];
   let bestDist = Infinity;
@@ -486,12 +487,17 @@ function getHfDomSnapshot(
   // Reuse the cached span lists only when they belong to the same painted host
   // (and it's still live). The host changes as the user scrolls between pages,
   // so a section-only cache would keep resolving against the wrong instance.
-  const cached = hfDomCache[section];
+  let slot = hfDomCache.get(root);
+  if (!slot) {
+    slot = { header: null, footer: null };
+    hfDomCache.set(root, slot);
+  }
+  const cached = slot[section];
   if (cached && cached.host === host && cached.host.isConnected) return cached;
   const spans = Array.from(host.querySelectorAll<HTMLElement>('span[data-pm-start][data-pm-end]'));
   const ranged = Array.from(host.querySelectorAll<HTMLElement>('[data-pm-start][data-pm-end]'));
   const snapshot = { host, spans, ranged };
-  hfDomCache[section] = snapshot;
+  slot[section] = snapshot;
   return snapshot;
 }
 
@@ -520,12 +526,12 @@ function getHfDomSnapshot(
 export function computeHfCaretRectFromView(
   view: EditorView,
   section: 'header' | 'footer',
-  doc: globalThis.Document = globalThis.document
+  scope: ParentNode = globalThis.document
 ): { top: number; left: number; height: number } | null {
   const sel = view.state.selection;
   if (!sel.empty) return null;
   const pmPos = sel.head;
-  const snapshot = getHfDomSnapshot(section, doc);
+  const snapshot = getHfDomSnapshot(section, scope);
   if (!snapshot) return null;
   const { host, spans } = snapshot;
   for (const span of spans) {
@@ -650,7 +656,7 @@ export function computeHfCaretRectFromView(
 export function computeHfSelectionRectsFromView(
   view: EditorView,
   section: 'header' | 'footer',
-  doc: globalThis.Document = globalThis.document
+  scope: ParentNode = globalThis.document
 ): Array<{ top: number; left: number; width: number; height: number }> {
   const sel = view.state.selection;
   if (sel.empty) return [];
@@ -662,7 +668,7 @@ export function computeHfSelectionRectsFromView(
   // for the section shares the same PM coord space (only one HF doc, painted N
   // times for the N pages), so a single host's spans suffice for selection
   // rects.
-  const snapshot = getHfDomSnapshot(section, doc);
+  const snapshot = getHfDomSnapshot(section, scope);
   if (!snapshot) return out;
   const { host, spans } = snapshot;
   for (const spanEl of spans) {

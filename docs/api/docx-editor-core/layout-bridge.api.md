@@ -99,14 +99,14 @@ export function collectFootnoteRefs(blocks: FlowBlock[]): FootnoteRefLocation[];
 export function columnWidthForSection(config: SectionLayoutConfig): number;
 
 // @public
-export function computeHfCaretRectFromView(view: EditorView, section: 'header' | 'footer', doc?: globalThis.Document): {
+export function computeHfCaretRectFromView(view: EditorView, section: 'header' | 'footer', scope?: ParentNode): {
     top: number;
     left: number;
     height: number;
 } | null;
 
 // @public
-export function computeHfSelectionRectsFromView(view: EditorView, section: 'header' | 'footer', doc?: globalThis.Document): Array<{
+export function computeHfSelectionRectsFromView(view: EditorView, section: 'header' | 'footer', scope?: ParentNode): Array<{
     top: number;
     left: number;
     width: number;
