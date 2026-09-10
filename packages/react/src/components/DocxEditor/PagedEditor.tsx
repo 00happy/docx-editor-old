@@ -259,15 +259,14 @@ export interface PagedEditorRef {
   highlightRange(from: number, to: number): void;
   /**
    * Look up the persistent hidden HF PM EditorView for a given HeaderFooter
-   * instance. Returns null when none is mounted (no document, or `hf` is not
-   * present in `Document.package.headers/footers`). Phase 2 of the HF
-   * unification: the inline overlay uses this to replicate edits into the
-   * persistent PM so the painter — which reads from the persistent PM per
-   * phase 1 — re-renders live during typing. Phase 5 deletes the inline
-   * overlay's PM and this method's only remaining caller is the click /
-   * focus router (phase 3).
+   * instance. Returns null when none is mounted. The click/focus router
+   * (phase 3) and the adoption host (phase 6) are the callers.
    */
   getHfPmView(hf: HeaderFooter): EditorView | null;
+  /** Adopt the HF PM's DOM into a visible host (painted band) — live editing. */
+  adoptHfPmView(hf: HeaderFooter, host: HTMLElement): boolean;
+  /** Undo adoptHfPmView — back off-screen. */
+  restoreHfPmView(hf: HeaderFooter): void;
   /** Get all active header/footer EditorViews mapped by rId. */
   getHfPmViews(): Map<string, EditorView>;
 }

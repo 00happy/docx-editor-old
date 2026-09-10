@@ -713,6 +713,17 @@
   background-color: transparent;
 }
 
+/*
+ * Live-PM adoption: while the persistent HF PM's DOM is adopted into the
+ * painted band, the band's own painted snapshot would double the ink (the
+ * PM renders the live doc; the paint is the last-saved snapshot). Hide the
+ * painted children — but not the adopted node, which is also a band child
+ * and has [data-hf-r-id] marking its origin in HiddenHeaderFooterPMs.
+ */
+.hf-band--live-pm > *:not([data-hf-r-id]) {
+  visibility: hidden;
+}
+
 /* =============================================================================
  * Tracked structural revisions — painter + ProseMirror DOM cues
  *

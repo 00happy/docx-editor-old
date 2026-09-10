@@ -155,6 +155,15 @@ function buildRefApi(inputs: RefApiInputs): PagedEditorRef {
       if (!rId) return null;
       return hiddenHfPMsRef.current?.getView(rId) ?? null;
     },
+    adoptHfPmView: (hf: HeaderFooter, host: HTMLElement): boolean => {
+      const rId = findRidForHeaderFooter(documentRef.current, hf);
+      if (!rId) return false;
+      return hiddenHfPMsRef.current?.adoptView(rId, host) ?? false;
+    },
+    restoreHfPmView: (hf: HeaderFooter): void => {
+      const rId = findRidForHeaderFooter(documentRef.current, hf);
+      if (rId) hiddenHfPMsRef.current?.restoreView(rId);
+    },
     getHfPmViews: (): Map<string, EditorView> => {
       return hiddenHfPMsRef.current?.getViews() ?? new Map();
     },

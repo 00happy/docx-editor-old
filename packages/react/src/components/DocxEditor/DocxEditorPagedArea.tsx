@@ -244,7 +244,6 @@ export function DocxEditorPagedArea({
         top: rect.top - c.top + host.scrollTop,
         left: rect.left - c.left + host.scrollLeft,
       };
-       
     },
     [editorContentRef]
   );
@@ -326,6 +325,34 @@ export function DocxEditorPagedArea({
       invalidateHfDomCache();
     };
   }, [hfEditPosition, hfEditorRef, applyHfOverlay]);
+
+  // Live-surface adoption: when HF edit mode engages, move the persistent HF
+  // PM's DOM into the painted band of THIS editor instance (scoped via
+  // editorContentRef — with multiple editors mounted the global document
+  // would resolve the first editor's band). The adopted PM is the visible,
+  // editable surface: native caret, native selection, click-to-position, and
+  // real-time typing come from the browser directly — no span measurement.
+  // The painted band keeps rendering underneath as the saved snapshot until
+  // the next relayout replaces it; to avoid double ink the band's painted
+  // content is hidden while the PM is adopted.
+  useEffect(() => {
+    if (!hfEditPosition || !activeHf) return;
+    const scope = editorContentRef.current;
+    if (!scope) return;
+    const bandSelector =
+      hfEditPosition === 'header' ? '.layout-page-header' : '.layout-page-footer';
+    const band = scope.querySelector<HTMLElement>(bandSelector);
+    if (!band) return;
+    const ok = pagedEditorRef.current?.adoptHfPmView(activeHf, band) ?? false;
+    if (!ok) return;
+    band.classList.add('hf-band--live-pm');
+    return () => {
+      band.classList.remove('hf-band--live-pm');
+      pagedEditorRef.current?.restoreHfPmView(activeHf);
+    };
+    // `activeHf` identity is stable while the same part stays open; switching
+    // parts (first-page toggle) re-runs the adopt into the new band.
+  }, [hfEditPosition, activeHf, pagedEditorRef, editorContentRef]);
 
   return (
     <>

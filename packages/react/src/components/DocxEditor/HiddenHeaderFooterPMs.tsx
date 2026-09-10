@@ -75,6 +75,18 @@ export interface HiddenHeaderFooterPMsRef {
   getView(rId: string): EditorView | null;
   /** Get all active EditorViews mapped by rId. */
   getViews(): Map<string, EditorView>;
+  /**
+   * Move a mounted HF PM's DOM into a visible host (the painted header/footer
+   * band). The off-screen host's `opacity/pointer-events` hiding is countered
+   * inline so the PM becomes the live, visible, editable surface with a
+   * native caret. Returns false when the rId has no mounted view.
+   */
+  adoptView(rId: string, host: HTMLElement): boolean;
+  /**
+   * Move an adopted HF PM's DOM back into the off-screen host and restore the
+   * hiding styles. Safe to call when the view was never adopted.
+   */
+  restoreView(rId: string): void;
 }
 
 export interface HiddenHeaderFooterPMsProps {
@@ -109,6 +121,8 @@ interface MountedView {
   view: EditorView;
   /** The DOM node `view` is mounted to (one `<div>` per rId inside the off-screen host). */
   mountNode: HTMLElement;
+  /** Inline styles applied while adopted into a visible host (removed on restore). */
+  adoptedStyleKeys: string[];
 }
 
 function buildInitialState(
@@ -322,7 +336,13 @@ export const HiddenHeaderFooterPMs = memo(
             onTransactionRef.current?.(slotRId, view, tr.docChanged);
           },
         });
-        have.set(slot.rId, { rId: slot.rId, kind: slot.kind, view, mountNode: node });
+        have.set(slot.rId, {
+          rId: slot.rId,
+          kind: slot.kind,
+          view,
+          mountNode: node,
+          adoptedStyleKeys: [],
+        });
       }
       // Note: `document` intentionally excluded from deps. Slot enumeration
       // already flows through `slots`, and `resolveHf` reads from the same
@@ -358,6 +378,36 @@ export const HiddenHeaderFooterPMs = memo(
             map.set(rId, mounted.view);
           }
           return map;
+        },
+        adoptView(rId: string, host: HTMLElement): boolean {
+          const mounted = mountedRef.current.get(rId);
+          if (!mounted) return false;
+          const node = mounted.mountNode;
+          // Counter the off-screen host's hiding inline — the mount node
+          // inherits `opacity:0 / pointer-events:none / z-index:-1 / fixed`
+          // from `hostRef`'s style, which must not apply inside the band.
+          if (node.parentElement !== host) host.appendChild(node);
+          node.style.position = 'static';
+          node.style.opacity = '1';
+          node.style.zIndex = 'auto';
+          node.style.pointerEvents = 'auto';
+          node.style.width = '100%';
+          mounted.adoptedStyleKeys = ['position', 'opacity', 'zIndex', 'pointerEvents', 'width'];
+          return true;
+        },
+        restoreView(rId: string): void {
+          const mounted = mountedRef.current.get(rId);
+          if (!mounted) return;
+          const node = mounted.mountNode;
+          for (const key of mounted.adoptedStyleKeys) {
+            node.style.removeProperty(key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`));
+          }
+          mounted.adoptedStyleKeys = [];
+          // The off-screen host is `position: fixed`, so `static` children
+          // stack vertically inside it — fine, it is invisible either way.
+          if (node.parentElement !== hostRef.current && hostRef.current) {
+            hostRef.current.appendChild(node);
+          }
         },
       }),
       []
